@@ -1,5 +1,7 @@
 <resources>
-    <string name="app_name">shakev1</string>
+    <string name="app_name">Shake</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="accelerometer">Accelerometer</string>
+    <string name="gyroscope">Gyroscope</string>
 </resources>
