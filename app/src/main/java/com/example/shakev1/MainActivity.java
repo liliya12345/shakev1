@@ -3,6 +3,8 @@ package com.example.shakev1;
 import static android.hardware.Sensor.TYPE_ACCELEROMETER;
 import static android.hardware.Sensor.TYPE_GYROSCOPE;
 
+import static java.lang.Math.clamp;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
@@ -12,6 +14,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Switch;
 import android.widget.Button;
@@ -46,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private Switch switch1;
     private Switch switch2;
 
+    private TextView accelerate;
 
     private float x, y, z;
 
@@ -71,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
         chart = findViewById(R.id.chart);
         switch1 = findViewById(R.id.switch1);
         switch2 = findViewById(R.id.switch2);
+
+
         listener = new SensorEventListener() {
             @Override
             public void onAccuracyChanged(Sensor sensor, int i) {
@@ -80,11 +86,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSensorChanged(SensorEvent event) {
                 showDiagram(event.values[0], event.values[1], event.values[2]);
-                rotateImage(event.values[1], event.values[0]);
+                colorConverter(event.values[0], event.values[1], event.values[2]);
+                rotateImage(event.values[0], event.values[1]);
 
-                float x = event.values[0];
-                float y = event.values[1];
-                float z = event.values[2];
+                 x = event.values[0];
+                 y = event.values[1];
+                 z = event.values[2];
 
                 if (x < -5 || y < -5 || z < -5) {
                     showDizzyToast();
@@ -98,11 +105,14 @@ public class MainActivity extends AppCompatActivity {
                 // Handle switch state change
                 if (isChecked) {
 
+
                     switch2.setChecked(false);
                     // Switch is ON
                     if (sensor != null) {
                         sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
                         chart.setVisibility(chart.VISIBLE);
+
+
                     }
 
                 } else {
@@ -113,6 +123,10 @@ public class MainActivity extends AppCompatActivity {
                     chart.clear();
                     chart.invalidate();
                     img.setRotation(0f);
+                    legendX.setText("X: 0.00");
+                    legendY.setText("Y: 0.00");
+                    legendZ.setText("Z: 0.00");
+
                 }
             }
         });
@@ -127,6 +141,7 @@ public class MainActivity extends AppCompatActivity {
                     if (sensor2 != null) {
                         sensorManager.registerListener(listener, sensor2, SensorManager.SENSOR_DELAY_NORMAL);
                         chart.setVisibility(chart.VISIBLE);
+//
                     }
 
                 } else {
@@ -170,6 +185,29 @@ public class MainActivity extends AppCompatActivity {
         return String.format("%.2f", value);
     }
 
+    public int[] colorConverter(float x, float y, float z){
+        double R_linear = (double) (3.24096994 * x - 1.53738318 * y - 0.49861076 * z);
+        double G_linear = (double) (-0.96924364 * x + 1.87596750 * y + 0.04155506 * z);
+        double B_linear = (double) (0.05563008 * x - 0.20397696 * y + 1.05697151 * z);
+        double r = gammaCorrect(R_linear);
+        double g = gammaCorrect(G_linear);
+        double b = gammaCorrect(B_linear);
+
+        int rInt = (int) Float.parseFloat(getFormattedValue(Math.round(clamp(r, 0.0, 1.0) * 255)));
+        int gInt = (int)Float.parseFloat(getFormattedValue(Math.round(clamp(g, 0.0, 1.0) * 255)));
+        int bInt = (int)Float.parseFloat(getFormattedValue(Math.round(clamp(b, 0.0, 1.0) * 255)));
+        Log.i("TAG", "colorConverter: "+ new int[]{rInt, gInt, bInt});
+        return new int []{rInt, gInt, bInt};
+
+    }
+    private static double gammaCorrect(double linear) {
+        if (linear <= 0.0031308) {
+            return 12.92 * linear;
+        } else {
+            return 1.055 * Math.pow(linear, 1.0 / 2.4) - 0.055;
+        }
+    }
+
     public void showDiagram(float x, float y, float z) {
 
 
@@ -178,8 +216,10 @@ public class MainActivity extends AppCompatActivity {
         entries.add(new BarEntry(1, y));
         entries.add(new BarEntry(2, z));
 
-        BarDataSet dataset = new BarDataSet(entries, "Accelerometer Data");
+        BarDataSet dataset = new BarDataSet(entries, "Sensor Data");
         dataset.setColors(ColorTemplate.COLORFUL_COLORS);
+        int[] colors= colorConverter(x,y,z);
+        dataset.setColors(Color.rgb(colors[0],colors[1],colors[2]));
 
 
         // Создаем метки для осей
@@ -258,9 +298,13 @@ public class MainActivity extends AppCompatActivity {
         chart.setFitBars(true);
         chart.setExtraOffsets(10f, 10f, 10f, 30f); // Отступы для легенды
 
+
         // Обновление
         chart.invalidate();
     }
+
+
+
 
 
 }
