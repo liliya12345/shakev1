@@ -2,9 +2,7 @@ package com.example.shakev1;
 
 import static android.hardware.Sensor.TYPE_ACCELEROMETER;
 import static android.hardware.Sensor.TYPE_GYROSCOPE;
-
 import static java.lang.Math.clamp;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
@@ -21,10 +19,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -41,13 +37,15 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
     private Button btn;
     private SensorManager sensorManager;
-    private Sensor sensor, sensor2, sensor3;
+    private Sensor sensor, sensor2;
     private ImageView img;
     private TextView legendX;
     private TextView legendZ;
     private TextView legendY;
     private Switch switch1;
     private Switch switch2;
+    private Button button;
+    private boolean i;
 
     private TextView accelerate;
 
@@ -57,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private SensorEventListener listener;
     private Toast toast;
     private BarChart chart;
+    private ImageView stopSensor;
 
 
     @SuppressLint({"MissingInflatedId", "WrongViewCast"})
@@ -70,11 +69,13 @@ public class MainActivity extends AppCompatActivity {
         sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         sensor = sensorManager.getDefaultSensor(TYPE_ACCELEROMETER);
         sensor2 = sensorManager.getDefaultSensor(TYPE_GYROSCOPE);
-        sensor3 = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+
         img = findViewById(R.id.img);
         chart = findViewById(R.id.chart);
         switch1 = findViewById(R.id.switch1);
         switch2 = findViewById(R.id.switch2);
+        btn =findViewById(R.id.button2);
+        stopSensor= findViewById(R.id.stopsnr);
 
 
         listener = new SensorEventListener() {
@@ -99,6 +100,49 @@ public class MainActivity extends AppCompatActivity {
             }
 
         };
+        stopSensor.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (i) {
+                    sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+                    chart.setVisibility(chart.VISIBLE);
+                    switch1.setChecked(true);
+                    switch2.setChecked(false);
+                    i=false;
+                }
+                else {
+                    sensorManager.unregisterListener(listener);
+                    chart.setVisibility(chart.INVISIBLE);
+                    switch1.setChecked(false);
+                    switch2.setChecked(false);
+                    i=true;
+
+                }
+
+                }
+
+            });
+        btn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (i) {
+                    sensorManager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_NORMAL);
+                    chart.setVisibility(chart.VISIBLE);
+                    switch1.setChecked(true);
+                    switch2.setChecked(false);
+                    i=false;
+            }
+                else {
+                    sensorManager.registerListener(listener, sensor2, SensorManager.SENSOR_DELAY_NORMAL);
+                    chart.setVisibility(chart.VISIBLE);
+                    switch1.setChecked(false);
+                    switch2.setChecked(true);
+                    i=true;
+
+                }
+        }});
+
         switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
@@ -161,6 +205,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
     private void showDizzyToast() {
         String[] list = {"I feel dizzy", "My head is spinning", "Feeling woozy", "Getting dizzy", "My head is spinning...",
@@ -304,7 +349,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onPause() {
+        sensorManager.unregisterListener(listener);
+        super.onPause();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+
+    }
 
 
 }
