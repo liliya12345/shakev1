@@ -40,16 +40,19 @@
                 tools:layout_editor_absoluteX="-16dp"
                 tools:layout_editor_absoluteY="68dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/button2"
                 android:layout_width="wrap_content"
                 android:layout_height="43dp"
-                android:layout_marginEnd="40dp"
                 android:text="Change"
-                android:background="@color/green"
                 android:textColor="@color/white"
                 android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                app:backgroundTint="@color/purple_500"
+                app:cornerRadius="20dp"
+                app:icon="@drawable/ic_change"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp" />
 
         </LinearLayout>
 
